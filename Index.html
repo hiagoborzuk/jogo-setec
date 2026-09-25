@@ -1,1 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#07091a">
+  <title>Órbita Run</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand" aria-label="Órbita Run">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span class="brand-name">ÓRBITA <strong>RUN</strong></span>
+      </div>
+      <div class="top-actions">
+        <button class="utility-button" id="soundButton" type="button" aria-pressed="true">SOM <span id="soundState">ON</span></button>
+        <button class="utility-button" id="pauseButton" type="button" disabled>PAUSA</button>
+      </div>
+    </header>
 
+    <main class="game-layout">
+      <section class="game-frame" id="gameFrame" aria-label="Área do jogo">
+        <canvas id="gameCanvas" aria-label="Jogo de corrida espacial"></canvas>
+
+        <div class="game-hud" id="gameHud" aria-hidden="true">
+          <div class="hud-phase" id="hudPhase">
+            <span id="phaseValue">SETOR 01</span>
+            <strong id="phaseName">ÓRBITA BAIXA</strong>
+            <small id="objectModeValue">OBJETOS: CRISTAIS</small>
+          </div>
+          <div class="hud-stat">
+            <span class="hud-label">DISTÂNCIA</span>
+            <strong id="distanceValue">0000 m</strong>
+          </div>
+          <div class="hud-stat hud-stat-center">
+            <span class="hud-label">PONTOS</span>
+            <strong id="scoreValue">000000</strong>
+          </div>
+          <div class="hud-stat hud-stat-right">
+            <span class="hud-label">ENERGIA</span>
+            <strong id="energyValue">0 / 10</strong>
+          </div>
+          <div class="boost-meter" aria-label="Impulso">
+            <span id="boostLabel">IMPULSO</span>
+            <div class="boost-track"><span id="boostFill"></span></div>
+          </div>
+        </div>
+
+        <div class="mission-toast" id="missionToast" role="status" aria-live="polite"></div>
+
+        <div class="screen start-screen" id="startScreen">
+          <div class="screen-card menu-card">
+            <div class="eyebrow">ENDLESS RUN <span></span> MISSÃO ESTELAR</div>
+            <h1>ÓRBITA <em>RUN</em></h1>
+            <p class="screen-lead">Escolha sua rota, desvie dos perigos e carregue energia para desbloquear os setores da galáxia.</p>
+            <div class="menu-route">
+              <span>ROTA SELECIONADA</span>
+              <strong id="menuPhaseValue">SETOR 01 · ÓRBITA BAIXA</strong>
+            </div>
+            <div class="menu-actions">
+              <button class="primary-button" id="startButton" type="button">JOGAR AGORA <span>→</span></button>
+              <button class="secondary-button" id="choosePhaseButton" type="button">ESCOLHER FASE</button>
+            </div>
+            <div class="menu-utility-actions">
+              <button class="menu-button" id="accessibilityButton" type="button">ACESSIBILIDADE</button>
+              <button class="menu-button" id="howToPlayButton" type="button">COMO JOGAR</button>
+              <button class="menu-button" id="menuCameraButton" type="button" aria-pressed="false">VISÃO: <span id="menuCameraValue">3ª PESSOA</span></button>
+            </div>
+            <p class="best-line">RECORDE LOCAL <strong id="bestScoreValue">0</strong></p>
+          </div>
+        </div>
+
+        <div class="screen phases-screen hidden" id="phasesScreen" role="dialog" aria-modal="true" aria-labelledby="phasesTitle">
+          <div class="screen-card phases-card">
+            <div class="screen-heading-row">
+              <div>
+                <div class="eyebrow">MAPA DE VOO</div>
+                <h2 id="phasesTitle">ESCOLHA UMA FASE</h2>
+              </div>
+              <button class="back-button" id="closePhasesButton" type="button">← MENU</button>
+            </div>
+            <p class="screen-lead">Conclua a coleta de energia de cada setor para abrir a próxima rota.</p>
+            <div class="phase-grid" id="phaseGrid"></div>
+            <p class="phase-progress-note">PROGRESSO TOTAL <strong id="phaseProgressValue">0 / 4</strong></p>
+          </div>
+        </div>
+
+        <div class="screen settings-screen hidden" id="accessibilityScreen" role="dialog" aria-modal="true" aria-labelledby="accessibilityTitle">
+          <div class="screen-card settings-card">
+            <div class="screen-heading-row">
+              <div>
+                <div class="eyebrow">PILOTAGEM ASSISTIDA</div>
+                <h2 id="accessibilityTitle">ACESSIBILIDADE</h2>
+              </div>
+              <button class="back-button" id="closeAccessibilityButton" type="button">← MENU</button>
+            </div>
+            <p class="screen-lead">Ajuste a experiência para jogar com mais conforto e clareza.</p>
+            <div class="settings-list">
+              <div class="settings-row">
+                <div><strong>Alto contraste</strong><span>Aumenta a diferença entre textos e fundo.</span></div>
+                <button class="switch" id="contrastToggle" type="button" role="switch" aria-checked="false" aria-label="Ativar alto contraste"><span></span></button>
+              </div>
+              <div class="settings-row">
+                <div><strong>Texto ampliado</strong><span>Aumenta os textos de menus e instruções.</span></div>
+                <button class="switch" id="textToggle" type="button" role="switch" aria-checked="false" aria-label="Ativar texto ampliado"><span></span></button>
+              </div>
+              <div class="settings-row">
+                <div><strong>Reduzir movimento</strong><span>Diminui partículas, tremores e deslocamentos.</span></div>
+                <button class="switch" id="motionToggle" type="button" role="switch" aria-checked="false" aria-label="Ativar redução de movimento"><span></span></button>
+              </div>
+              <div class="settings-row">
+                <div><strong>Áudio do jogo</strong><span>Ativa ou desativa os efeitos sonoros.</span></div>
+                <button class="switch" id="soundToggle" type="button" role="switch" aria-checked="true" aria-label="Ativar áudio do jogo"><span></span></button>
+              </div>
+              <div class="settings-row camera-setting">
+                <div><strong>Visão da câmera</strong><span>Alterna entre 1ª e 3ª pessoa.</span></div>
+                <button class="setting-choice" id="cameraToggle" type="button" aria-pressed="false"><span id="cameraModeValue">3ª PESSOA</span><b>↔</b></button>
+              </div>
+            </div>
+            <p class="accessibility-note">Atalhos: <kbd>Enter</kbd> confirmar · <kbd>Esc</kbd> voltar · <kbd>P</kbd> pausar</p>
+          </div>
+        </div>
+
+        <div class="screen help-screen hidden" id="howToPlayScreen" role="dialog" aria-modal="true" aria-labelledby="howToPlayTitle">
+          <div class="screen-card help-card">
+            <div class="screen-heading-row">
+              <div>
+                <div class="eyebrow">MANUAL DE VOO</div>
+                <h2 id="howToPlayTitle">COMO JOGAR</h2>
+              </div>
+              <button class="back-button" id="closeHelpButton" type="button">← MENU</button>
+            </div>
+            <p class="screen-lead">Use as três órbitas para escapar dos detritos e alcance a meta de energia da fase.</p>
+            <div class="help-list">
+              <div><kbd>←</kbd><kbd>→</kbd><span>Mover a nave entre as órbitas</span></div>
+              <div><kbd>W</kbd><span>ou</span><kbd>↑</kbd><span>Pular sobre asteroides e drones</span></div>
+              <div><kbd>S</kbd><span>ou</span><kbd>↓</kbd><span>Deslizar sob os lasers</span></div>
+              <div><kbd>C</kbd><span>Alternar entre 1ª e 3ª pessoa</span></div>
+              <div><kbd>P</kbd><span>Pausar a qualquer momento</span></div>
+            </div>
+            <div class="help-tip"><strong>DICA</strong><span>Encha o combo coletando cristais sem sofrer impactos.</span></div>
+          </div>
+        </div>
+
+        <div class="screen mission-complete-screen hidden" id="missionCompleteScreen" role="dialog" aria-modal="true" aria-labelledby="missionCompleteTitle">
+          <div class="screen-card compact-card complete-card">
+            <div class="eyebrow success-eyebrow">SINAL DE SUCESSO</div>
+            <h2 id="missionCompleteTitle">MISSÃO CONCLUÍDA</h2>
+            <p class="screen-lead">A rota foi estabilizada. Você já pode continuar explorando a galáxia.</p>
+            <div class="complete-stats">
+              <div><span>ENERGIA</span><strong id="completeEnergy">0 / 0</strong></div>
+              <div><span>RECOMPENSA</span><strong id="completeReward">+0 PTS</strong></div>
+            </div>
+            <button class="primary-button" id="continueMissionButton" type="button">CONTINUAR CORRIDA <span>→</span></button>
+            <button class="secondary-button" id="missionMapButton" type="button">ABRIR MAPA DE FASES</button>
+          </div>
+        </div>
+
+        <div class="screen pause-screen hidden" id="pauseScreen">
+          <div class="screen-card compact-card">
+            <div class="eyebrow">SISTEMAS EM ESPERA</div>
+            <h2>PAUSADO</h2>
+            <p class="screen-lead">A galáxia pode esperar. Respire e continue a corrida.</p>
+            <button class="primary-button" id="resumeButton" type="button">CONTINUAR <span>→</span></button>
+            <button class="secondary-button" id="quitButton" type="button">VOLTAR AO INÍCIO</button>
+          </div>
+        </div>
+
+        <div class="screen gameover-screen hidden" id="gameoverScreen">
+          <div class="screen-card compact-card">
+            <div class="eyebrow danger-eyebrow">SINAL PERDIDO</div>
+            <h2>FIM DA MISSÃO</h2>
+            <p class="screen-lead" id="gameoverMessage">A próxima rota está esperando por você.</p>
+            <div class="result-grid">
+              <div><span>PONTOS</span><strong id="finalScore">0</strong></div>
+              <div><span>DISTÂNCIA</span><strong id="finalDistance">0 m</strong></div>
+              <div><span>ENERGIA</span><strong id="finalEnergy">0</strong></div>
+            </div>
+            <button class="primary-button" id="restartButton" type="button">TENTAR NOVAMENTE <span>→</span></button>
+            <button class="secondary-button" id="gameoverMenuButton" type="button">VOLTAR AO MENU</button>
+            <p class="best-line">RECORDE LOCAL <strong id="finalBest">0</strong></p>
+          </div>
+        </div>
+
+        <div class="touch-controls" aria-label="Controles do jogo">
+          <div class="control-cluster">
+            <button class="control-button" data-action="left" type="button" aria-label="Mover para a esquerda">←</button>
+            <button class="control-button" data-action="right" type="button" aria-label="Mover para a direita">→</button>
+          </div>
+          <div class="control-cluster">
+            <button class="control-button action-button" data-action="jump" type="button" aria-label="Pular">↑</button>
+            <button class="control-button action-button" data-action="slide" type="button" aria-label="Deslizar">↓</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <div class="panel-card mission-panel">
+          <div class="panel-heading">
+            <span class="panel-kicker">MISSÃO ATIVA</span>
+            <span class="status-dot"></span>
+          </div>
+          <h2>Colete energia</h2>
+          <p>Recolha os cristais para estabilizar a nave.</p>
+          <div class="mission-progress-row"><span>PROGRESSO</span><strong id="missionValue">0 / 10</strong></div>
+          <div class="mission-track"><span id="missionFill"></span></div>
+          <div class="mission-reward"><span>RECOMPENSA</span><strong id="missionRewardValue">+500 PTS</strong></div>
+        </div>
+
+        <div class="panel-card controls-panel">
+          <div class="panel-kicker">COMANDOS</div>
+          <div class="command-list">
+            <div class="command-row"><span class="command-key"><kbd>←</kbd><kbd>→</kbd></span><span>Mover entre órbitas</span></div>
+            <div class="command-row"><span class="command-key"><kbd>W</kbd><span class="key-wide">/</span><kbd>↑</kbd></span><span>Saltar sobre detritos</span></div>
+            <div class="command-row"><span class="command-key"><kbd>S</kbd><span class="key-wide">/</span><kbd>↓</kbd></span><span>Deslizar sob lasers</span></div>
+            <div class="command-row"><span class="command-key"><kbd>C</kbd></span><span>Alternar a visão da câmera</span></div>
+            <div class="command-row"><span class="command-key"><kbd>P</kbd></span><span>Pausar a missão</span></div>
+          </div>
+        </div>
+
+        <div class="panel-card tip-panel">
+          <div class="tip-icon">i</div>
+          <div><strong>DICA DE PILOTO</strong><p>Use os cristais azuis para combo. Eles valem o dobro quando você encadeia a coleta.</p></div>
+        </div>
+
+        <p class="panel-footer">ÓRBITA RUN <span></span> SISTEMA 4.7.2</p>
+      </aside>
+    </main>
+
+    <footer class="site-footer" aria-label="Créditos do jogo">
+      <div class="footer-intro">
+        <span class="footer-orbit" aria-hidden="true"></span>
+        <div><strong>ÓRBITA RUN</strong><small>UMA AVENTURA ENTRE AS ESTRELAS</small></div>
+      </div>
+      <div class="footer-credit"><span>DESENVOLVEDOR</span><strong>Hiago Borzuk</strong></div>
+      <div class="footer-credit"><span>TURMA</span><strong>2° D.S</strong></div>
+      <div class="footer-credit"><span>COLÉGIO</span><strong>Barbosa Ferraz</strong></div>
+    </footer>
+  </div>
+</body>
+</html>
